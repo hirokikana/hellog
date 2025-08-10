@@ -107,7 +107,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path build | Out-Null
           # Compile .wxs to .wixobj
-          candle packaging\windows\hellog.wxs -dVersion=0.1.0 -dBinPath=dist\hellog.exe -out build\
+          candle -dVersion=0.1.0 -dBinPath=dist\hellog.exe -out build\hellog.wixobj packaging\windows\hellog.wxs
           # Link to .msi
           light -ext WixUIExtension -o dist\hellog.msi build\hellog.wixobj
 
