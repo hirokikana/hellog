@@ -27,7 +27,9 @@ func ensureInstalled(source string) error {
     }
     // ソースが無い場合のみインストールを試みる
     // Windowsでは管理者権限が必要な場合があります。
-    if err := eventlog.Install(source, exe, false); err != nil {
+    // 最新の x/sys では Install のシグネチャが (string, string, bool, uint32)
+    // に拡張されているため、第4引数に 0 を渡す。
+    if err := eventlog.Install(source, exe, false, 0); err != nil {
         return fmt.Errorf("install event source: %w", err)
     }
     return nil
@@ -54,4 +56,3 @@ func (w *winLogger) LogHello() error {
 }
 
 func (w *winLogger) Close() error { return w.l.Close() }
-
