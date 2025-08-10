@@ -59,13 +59,19 @@ jobs:
         run: |
           $(go env GOPATH)/bin/nfpm pkg --config packaging/nfpm.yaml --packager rpm --target dist
 
-      - name: Upload linux artifacts
+      - name: Upload deb packages
         uses: actions/upload-artifact@v4
         with:
-          name: hellog-linux
+          name: hellog-deb-${{ steps.ver.outputs.version }}
           path: |
-            dist/hellog
             dist/*.deb
+          if-no-files-found: error
+
+      - name: Upload rpm packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: hellog-rpm-${{ steps.ver.outputs.version }}
+          path: |
             dist/*.rpm
           if-no-files-found: error
 
