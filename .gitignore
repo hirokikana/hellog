@@ -1,0 +1,20 @@
+# Build artifacts
+/bin/
+/dist/
+/build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.msi
+
+# Module cache
+go.sum
+
+# Editors/OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+

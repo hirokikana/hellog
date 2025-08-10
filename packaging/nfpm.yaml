@@ -1,0 +1,32 @@
+name: hellog
+arch: amd64
+platform: linux
+version: 0.1.0
+section: utils
+priority: optional
+maintainer: Your Name <you@example.com>
+description: |
+  Periodically log "Hello" to syslog (Unix) or Event Log (Windows).
+homepage: https://example.com/hellog
+license: MIT
+deb:
+  compression: zstd
+rpm:
+  compression: zstd
+contents:
+  - src: ./dist/hellog
+    dst: /usr/bin/hellog
+    type: file
+    file_info:
+      mode: 0755
+  - src: ./README.md
+    dst: /usr/share/doc/hellog/README.md
+    type: file
+  - src: ./packaging/systemd/hellog.service
+    dst: /lib/systemd/system/hellog.service
+    type: file
+    file_info:
+      mode: 0644
+config_files:
+  "/etc/hellog/config.json": ./packaging/config/config.json
+scripts: {}

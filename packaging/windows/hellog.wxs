@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="hellog" Language="1033" Version="0.1.0" Manufacturer="Your Name" UpgradeCode="00000000-0000-0000-0000-000000000000">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine"/>
+
+    <MediaTemplate/>
+
+    <Feature Id="ProductFeature" Title="hellog" Level="1">
+      <ComponentGroupRef Id="AppFiles"/>
+      <ComponentGroupRef Id="ConfigFiles"/>
+      <ComponentRef Id="HellogService"/>
+    </Feature>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="hellog"/>
+      </Directory>
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="CONFIGDIR" Name="Hellog"/>
+      </Directory>
+    </Directory>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Component Id="HellogExe" Guid="*">
+        <!-- candle 実行時に -dBinPath=... で exe パスを渡す -->
+        <File Id="HellogExeFile" Source="$(var.BinPath)" KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="ConfigFiles" Directory="CONFIGDIR">
+      <Component Id="ConfigJson" Guid="*">
+        <File Id="ConfigFile" Source="packaging\windows\config.json" KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <Component Id="HellogService" Guid="*" Directory="INSTALLFOLDER">
+      <ServiceInstall Id="HellogServiceInstall"
+                      Name="hellog"
+                      DisplayName="Hellog"
+                      Description="Periodically log Hello to Windows Event Log"
+                      Type="ownProcess"
+                      Start="auto"
+                      ErrorControl="normal"
+                      Arguments=""
+                      Account="LocalSystem"/>
+      <ServiceControl Id="HellogServiceControl" Name="hellog" Start="install" Stop="both" Remove="uninstall" Wait="yes"/>
+    </Component>
+
+  </Product>
+</Wix>

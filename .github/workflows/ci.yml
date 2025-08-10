@@ -1,0 +1,108 @@
+name: CI Packages
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+
+jobs:
+  linux:
+    name: Linux build/test + deb/rpm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+          cache: true
+
+      - name: Go test
+        run: go test ./...
+
+      - name: Build linux binary
+        run: |
+          mkdir -p dist
+          go build -o dist/hellog ./cmd/hellog
+
+      - name: Compute version
+        id: ver
+        shell: bash
+        run: |
+          ref="${GITHUB_REF#refs/tags/}"
+          if [[ "$ref" == v* ]]; then
+            echo "version=${ref#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.1.0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set nfpm version in config
+        run: sed -i "s/^version:.*/version: ${{ steps.ver.outputs.version }}/" packaging/nfpm.yaml
+
+      - name: Install nfpm
+        run: |
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.33.1
+
+      - name: Build deb
+        run: |
+          $(go env GOPATH)/bin/nfpm pkg --config packaging/nfpm.yaml --packager deb --target dist
+
+      - name: Build rpm
+        run: |
+          $(go env GOPATH)/bin/nfpm pkg --config packaging/nfpm.yaml --packager rpm --target dist
+
+      - name: Upload linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hellog-linux
+          path: |
+            dist/hellog
+            dist/*.deb
+            dist/*.rpm
+          if-no-files-found: error
+
+  windows:
+    name: Windows build/test + MSI
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+          cache: true
+
+      - name: Go test
+        run: go test ./...
+
+      - name: Build windows binary
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          go build -o dist/hellog.exe ./cmd/hellog
+
+      - name: Install WiX Toolset
+        run: choco install -y wixtoolset
+
+      - name: Build MSI with WiX
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+          # Compile .wxs to .wixobj
+          candle packaging\windows\hellog.wxs -dVersion=0.1.0 -dBinPath=dist\hellog.exe -out build\
+          # Link to .msi
+          light -ext WixUIExtension -o dist\hellog.msi build\hellog.wixobj
+
+      - name: Upload windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hellog-windows
+          path: |
+            dist/hellog.exe
+            dist/hellog.msi
+          if-no-files-found: error
+
