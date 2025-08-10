@@ -40,7 +40,9 @@ jobs:
           fi
 
       - name: Set nfpm version in config
-        run: sed -i "s/^version:.*/version: ${{ steps.ver.outputs.version }}/" packaging/nfpm.yaml
+        shell: bash
+        run: |
+          sed -i "s/^version:.*/version: ${{ steps.ver.outputs.version }}/" packaging/nfpm.yaml
 
       - name: Install nfpm
         run: |
@@ -105,4 +107,3 @@ jobs:
             dist/hellog.exe
             dist/hellog.msi
           if-no-files-found: error
-
