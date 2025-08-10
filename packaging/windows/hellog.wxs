@@ -8,7 +8,6 @@
     <Feature Id="ProductFeature" Title="hellog" Level="1">
       <ComponentGroupRef Id="AppFiles"/>
       <ComponentGroupRef Id="ConfigFiles"/>
-      <ComponentRef Id="HellogService"/>
     </Feature>
 
     <Directory Id="TARGETDIR" Name="SourceDir">
@@ -24,6 +23,15 @@
       <Component Id="HellogExe" Guid="*">
         <!-- candle 実行時に -dBinPath=... で exe パスを渡す -->
         <File Id="HellogExeFile" Source="$(var.BinPath)" KeyPath="yes"/>
+        <ServiceInstall Id="HellogServiceInstall"
+                        Name="hellog"
+                        DisplayName="Hellog"
+                        Description="Periodically log Hello to Windows Event Log"
+                        Type="ownProcess"
+                        Start="auto"
+                        ErrorControl="normal"
+                        Account="LocalSystem"/>
+        <ServiceControl Id="HellogServiceControl" Name="hellog" Start="install" Stop="both" Remove="uninstall" Wait="yes"/>
       </Component>
     </ComponentGroup>
 
@@ -33,18 +41,7 @@
       </Component>
     </ComponentGroup>
 
-    <Component Id="HellogService" Guid="*" Directory="INSTALLFOLDER">
-      <ServiceInstall Id="HellogServiceInstall"
-                      Name="hellog"
-                      DisplayName="Hellog"
-                      Description="Periodically log Hello to Windows Event Log"
-                      Type="ownProcess"
-                      Start="auto"
-                      ErrorControl="normal"
-                      Arguments=""
-                      Account="LocalSystem"/>
-      <ServiceControl Id="HellogServiceControl" Name="hellog" Start="install" Stop="both" Remove="uninstall" Wait="yes"/>
-    </Component>
+    
 
   </Product>
 </Wix>
