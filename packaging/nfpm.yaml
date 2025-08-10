@@ -27,6 +27,7 @@ contents:
     type: file
     file_info:
       mode: 0644
-config_files:
-  "/etc/hellog/config.json": ./packaging/config/config.json
+  - src: ./packaging/config/config.json
+    dst: /etc/hellog/config.json
+    type: config
 scripts: {}
