@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="hellog" Language="1033" Version="0.1.0" Manufacturer="Your Name" UpgradeCode="00000000-0000-0000-0000-000000000000">
+  <Product Id="*" Name="hellog" Language="1033" Version="0.1.0" Manufacturer="Your Name" UpgradeCode="4a28b7e3-2b1b-4c3e-9a1b-e211d2d83bd3">
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine"/>
 
     <MediaTemplate/>
