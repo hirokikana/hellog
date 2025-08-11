@@ -1,0 +1,26 @@
+#!/bin/bash
+set -euo pipefail
+
+# Ensure config directory exists with default config if missing
+CFG_DIR="/Library/Application Support/Hellog"
+CFG_FILE="$CFG_DIR/config.json"
+if [ ! -d "$CFG_DIR" ]; then
+  /bin/mkdir -p "$CFG_DIR"
+  /usr/sbin/chown root:wheel "$CFG_DIR"
+  /bin/chmod 0755 "$CFG_DIR"
+fi
+if [ ! -f "$CFG_FILE" ]; then
+  /bin/cp -f "/Library/Application Support/Hellog/config.json.default" "$CFG_FILE" || true
+  /usr/sbin/chown root:wheel "$CFG_FILE"
+  /bin/chmod 0644 "$CFG_FILE"
+fi
+
+# Load/Restart launchd service
+PLIST="/Library/LaunchDaemons/com.example.hellog.plist"
+if /bin/launchctl list | /usr/bin/grep -q com.example.hellog; then
+  /bin/launchctl unload "$PLIST" || true
+fi
+/bin/launchctl load -w "$PLIST" || true
+
+exit 0
+
