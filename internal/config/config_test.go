@@ -33,10 +33,14 @@ func TestDefaultPath(t *testing.T) {
         if dp == "" || filepath.Ext(dp) != ".json" {
             t.Fatalf("unexpected default path: %q", dp)
         }
+    } else if runtime.GOOS == "darwin" {
+        want := filepath.Join("/Library", "Application Support", "Hellog", "config.json")
+        if dp != want {
+            t.Fatalf("unexpected default path: %q", dp)
+        }
     } else {
         if dp != "/etc/hellog/config.json" {
             t.Fatalf("unexpected default path: %q", dp)
         }
     }
 }
-

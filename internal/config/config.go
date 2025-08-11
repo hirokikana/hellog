@@ -34,6 +34,9 @@ func DefaultPath() string {
         }
         return filepath.Join(`C:\\ProgramData`, "Hellog", "config.json")
     }
+    if runtime.GOOS == "darwin" {
+        return filepath.Join("/Library", "Application Support", "Hellog", "config.json")
+    }
     return "/etc/hellog/config.json"
 }
 
@@ -57,4 +60,3 @@ func Load(path string) (*Config, error) {
     }
     return &c, nil
 }
-

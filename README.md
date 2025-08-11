@@ -4,6 +4,7 @@
 
 - Unix系(Linux等): systemd サービスとして起動し、syslog へ出力
 - Windows: サービスとして起動し、イベントログへ出力（イベントソース: `hellog` 既定）
+- macOS: launchd の LaunchDaemon として起動し、syslog/標準ログへ出力
 
 ## 使い方
 
@@ -24,7 +25,7 @@ GOOS=windows GOARCH=amd64 go build -o dist/hellog.exe ./cmd/hellog
 go test ./...
 ```
 
-## パッケージング (deb/rpm/msi)
+## パッケージング (deb/rpm/msi/pkg)
 
 標準的な手法として以下の設定ファイルを同梱しています。
 
@@ -88,4 +89,27 @@ sudo systemctl status hellog
 sc stop hellog
 sc start hellog
 sc query hellog
+```
+
+### macOS (launchd)
+- バイナリ: `/usr/local/bin/hellog`
+- 設定: `/Library/Application Support/Hellog/config.json`
+- Daemon: `/Library/LaunchDaemons/com.example.hellog.plist`
+
+コマンド例:
+```
+sudo launchctl unload /Library/LaunchDaemons/com.example.hellog.plist 2>/dev/null || true
+sudo launchctl load -w /Library/LaunchDaemons/com.example.hellog.plist
+sudo launchctl list | grep com.example.hellog || true
+```
+
+### pkg (macOS)
+CIで .pkg を生成します。ローカルでも次で作成可能:
+```
+mkdir -p pkgroot/usr/local/bin "pkgroot/Library/LaunchDaemons" "pkgroot/Library/Application Support/Hellog"
+cp dist/hellog pkgroot/usr/local/bin/hellog
+cp packaging/macos/hellog.plist "pkgroot/Library/LaunchDaemons/com.example.hellog.plist"
+cp packaging/config/config.json "pkgroot/Library/Application Support/Hellog/config.json.default"
+chmod +x packaging/macos/scripts/postinstall
+pkgbuild --root pkgroot --identifier com.example.hellog --version 0.1.0 --install-location / --scripts packaging/macos/scripts dist/hellog.pkg
 ```

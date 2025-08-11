@@ -144,7 +144,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, windows]
+    needs: [linux, windows, macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -166,3 +166,69 @@ jobs:
             dist/*.rpm
             dist/hellog.msi
             dist/hellog.exe
+  macos:
+    name: macOS build/test + PKG
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+          cache: true
+
+      - name: Go mod tidy
+        run: go mod tidy
+
+      - name: Go test
+        run: go test ./...
+
+      - name: Build darwin binary
+        run: |
+          mkdir -p dist
+          go build -o dist/hellog ./cmd/hellog
+
+      - name: Compute version
+        id: vermac
+        run: |
+          ref="${GITHUB_REF#refs/tags/}"
+          if [[ "$ref" == v* ]]; then
+            echo "version=${ref#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.1.0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build macOS pkg
+        run: |
+          # Prepare payload root
+          mkdir -p pkgroot/usr/local/bin
+          mkdir -p "pkgroot/Library/LaunchDaemons"
+          mkdir -p "pkgroot/Library/Application Support/Hellog"
+          cp dist/hellog pkgroot/usr/local/bin/hellog
+          cp packaging/macos/hellog.plist "pkgroot/Library/LaunchDaemons/com.example.hellog.plist"
+          # Install default config as .default (postinstall will copy on first install)
+          cp packaging/config/config.json "pkgroot/Library/Application Support/Hellog/config.json.default"
+          # Permissions
+          chmod 0755 pkgroot/usr/local/bin/hellog
+          chmod 0644 "pkgroot/Library/LaunchDaemons/com.example.hellog.plist"
+          chmod 0644 "pkgroot/Library/Application Support/Hellog/config.json.default"
+          # Scripts must be executable
+          chmod +x packaging/macos/scripts/postinstall
+          # Build pkg
+          pkgbuild \
+            --root pkgroot \
+            --identifier com.example.hellog \
+            --version "${{ steps.vermac.outputs.version }}" \
+            --install-location / \
+            --scripts packaging/macos/scripts \
+            dist/hellog.pkg
+
+      - name: Upload macOS pkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: hellog-macos-pkg-${{ steps.vermac.outputs.version }}
+          path: dist/hellog.pkg
+          if-no-files-found: error
+            dist/hellog.pkg
